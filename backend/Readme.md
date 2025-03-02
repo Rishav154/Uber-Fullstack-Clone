@@ -12,6 +12,9 @@
 ### Captain Endpoints
 
 - [Register Captain (`/captain/register`)](#register-captain)
+- [Login Captain (`/captain/login`)](#login-captain)
+- [Get Captain Profile (`/captain/profile`)](#get-captain-profile)
+- [Logout Captain (`/captain/logout`)](#logout-captain)
 
 ## User Endpoints
 
@@ -28,18 +31,21 @@ record, and returns an authentication token along with user details.
 
 #### Request Body
 
+Field descriptions:
+
+- `fullname.firstname`: Required, minimum length: 2 characters
+- `fullname.lastname`: Optional
+- `email`: Required, must be a valid email address
+- `password`: Required, minimum length: 6 characters
+
 ```json
 {
   "fullname": {
     "firstname": "John",
-    // Required, min length: 2
     "lastname": "Doe"
-    // Optional
   },
   "email": "john.doe@example.com",
-  // Required, valid email
   "password": "password123"
-  // Required, min length: 6
 }
 ```
 
@@ -88,12 +94,15 @@ and as an HTTP-only cookie) and user details.
 
 #### Request Body
 
+Field descriptions:
+
+- `email`: Required, must be a valid email address
+- `password`: Required, minimum length: 6 characters
+
 ```json
 {
   "email": "john.doe@example.com",
-  // Required, valid email
   "password": "password123"
-  // Required, min length: 6
 }
 ```
 
@@ -156,9 +165,7 @@ Requires a valid JWT token, which can be provided in either:
 - Authorization header: `Authorization: Bearer <token>`
 - Cookie: `token=<token>`
 
-#### Responses
-
-##### Success Response (200 OK)
+#### Response (200 OK)
 
 ```json
 {
@@ -168,14 +175,6 @@ Requires a valid JWT token, which can be provided in either:
   },
   "email": "john.doe@example.com",
   "socketId": null
-}
-```
-
-##### Error Response (401 Unauthorized)
-
-```json
-{
-  "message": "Authentication required"
 }
 ```
 
@@ -206,14 +205,6 @@ Requires a valid JWT token, which can be provided in either:
 }
 ```
 
-##### Error Response (401 Unauthorized)
-
-```json
-{
-  "message": "Authentication required"
-}
-```
-
 ## Captain Endpoints
 
 ### Register Captain
@@ -229,27 +220,30 @@ captain record, and returns an authentication token along with captain details.
 
 #### Request Body
 
+Field descriptions:
+
+- `fullname.firstname`: Required, minimum length: 2 characters
+- `fullname.lastname`: Optional
+- `email`: Required, must be a valid email address
+- `password`: Required, minimum length: 6 characters
+- `vehicle.color`: Required, minimum length: 3 characters
+- `vehicle.plate`: Required, minimum length: 3 characters
+- `vehicle.capacity`: Required, minimum value: 1
+- `vehicle.vehicleType`: Required, must be one of: "car", "motorcycle", or "auto"
+
 ```json
 {
   "fullname": {
     "firstname": "John",
-    // Required, min length: 2
     "lastname": "Doe"
-    // Optional
   },
   "email": "john.doe@example.com",
-  // Required, valid email
   "password": "password123",
-  // Required, min length: 6
   "vehicle": {
     "color": "Black",
-    // Required, min length: 3
     "plate": "ABC123",
-    // Required, min length: 3
     "capacity": 4,
-    // Required, min value: 1
     "vehicleType": "car"
-    // Required, must be one of: "car", "motorcycle", "auto"
   }
 }
 ```
@@ -301,6 +295,125 @@ captain record, and returns an authentication token along with captain details.
 }
 ```
 
+### Login Captain
+
+**Endpoint:** `/captain/login`  
+**Method:** POST  
+**Authentication:** Not required
+
+#### Description
+
+Authenticates a captain using email and password. Upon successful authentication, returns a JWT token (both in response
+body and as an HTTP-only cookie) and captain details.
+
+#### Request Body
+
+Field descriptions:
+
+- `email`: Required, must be a valid email address
+- `password`: Required, minimum length: 6 characters
+
+```json
+{
+  "email": "john.doe@example.com",
+  "password": "password123"
+}
+```
+
+#### Responses
+
+##### Success Response (201 Created)
+
+```json
+{
+  "token": "jwt_token_here",
+  "captain": {
+    "fullname": {
+      "firstname": "John",
+      "lastname": "Doe"
+    },
+    "email": "john.doe@example.com",
+    "vehicle": {
+      "color": "Black",
+      "plate": "ABC123",
+      "capacity": 4,
+      "vehicleType": "car"
+    }
+  }
+}
+```
+
+##### Error Response: Invalid Credentials (401 Unauthorized)
+
+```json
+{
+  "message": "Invalid email or password"
+}
+```
+
+### Get Captain Profile
+
+**Endpoint:** `/captain/profile`  
+**Method:** GET  
+**Authentication:** Required (JWT Token)
+
+#### Description
+
+Retrieves the profile information of the currently authenticated captain.
+
+#### Authentication
+
+Requires a valid JWT token, which can be provided in either:
+
+- Authorization header: `Authorization: Bearer <token>`
+- Cookie: `token=<token>`
+
+#### Response (200 OK)
+
+```json
+{
+  "captain": {
+    "fullname": {
+      "firstname": "John",
+      "lastname": "Doe"
+    },
+    "email": "john.doe@example.com",
+    "vehicle": {
+      "color": "Black",
+      "plate": "ABC123",
+      "capacity": 4,
+      "vehicleType": "car"
+    }
+  }
+}
+```
+
+### Logout Captain
+
+**Endpoint:** `/captain/logout`  
+**Method:** GET  
+**Authentication:** Required (JWT Token)
+
+#### Description
+
+Logs out the currently authenticated captain by clearing the authentication cookie and blacklisting the current JWT
+token.
+
+#### Authentication
+
+Requires a valid JWT token, which can be provided in either:
+
+- Authorization header: `Authorization: Bearer <token>`
+- Cookie: `token=<token>`
+
+#### Success Response (200 OK)
+
+```json
+{
+  "message": "Captain logout successfull"
+}
+```
+
 ## General Notes
 
 ### Authentication
@@ -324,7 +437,15 @@ captain record, and returns an authentication token along with captain details.
 - JWT tokens are HTTP-only cookies for XSS protection
 - Token blacklisting prevents token reuse after logout
 
-### Validation Rules for Captain Registration
+### Validation Rules
+
+#### User Registration
+
+- Email must be a valid email address
+- First name must be at least 2 characters long
+- Password must be at least 6 characters long
+
+#### Captain Registration
 
 - Email must be a valid email address
 - First name must be at least 2 characters long
