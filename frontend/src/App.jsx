@@ -1,5 +1,4 @@
-import React, { useContext } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import {Route, Routes} from 'react-router-dom'
 import UserLogin from './pages/UserLogin'
 import UserSignup from './pages/UserSignup'
 import CaptainLogin from './pages/CaptainLogin'
@@ -7,7 +6,6 @@ import CaptainSignup from './pages/CaptainSignup'
 import Home from './pages/Home'
 
 const App = () => {
-
     return (
         <div>
             <Routes>
